@@ -58,12 +58,17 @@ const SchedulingPage: React.FC = () => {
         {/* Quick Actions Widget */}
         <div className="bg-dark/80 border border-primary/20 rounded-xl p-5 flex flex-col items-center shadow">
           <div className="text-primary font-bold text-lg mb-2">Quick Actions</div>
-          <button
-            className="w-full bg-primary text-dark font-semibold rounded-lg py-2 mb-2 hover:bg-primary/90 transition flex items-center justify-center gap-2"
-            onClick={handleOpenForm}
-          >
-            <PlusCircle className="w-5 h-5" /> New Booking
-          </button>
+          {/* + New Booking button: Always opens a fresh booking form */}
+<button
+  className="w-full bg-gradient-to-r from-primary to-cyan-500 text-white font-bold rounded-xl py-3 mb-2 shadow-lg hover:from-cyan-500 hover:to-primary transition flex items-center justify-center gap-2 text-lg tracking-wide border-2 border-primary/80"
+  onClick={() => {
+    setEditBooking(null); // Always ensure a fresh form
+    setFormOpen(true);
+  }}
+  aria-label="Create new booking"
+>
+  <PlusCircle className="w-6 h-6" /> + New Booking
+</button>
           <button
             className="w-full border border-primary text-primary font-semibold rounded-lg py-2 hover:bg-primary/10 transition flex items-center justify-center gap-2"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

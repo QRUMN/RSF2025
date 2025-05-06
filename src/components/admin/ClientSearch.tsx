@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 
-// Placeholder clients data (replace with API/Supabase fetch later)
-const clients = [
-  { id: '1', name: 'Ape Jawn' },
-  { id: '2', name: 'Jane Smith' },
-  { id: '3', name: 'John Doe' },
-];
+import { useClients } from '../../hooks/useClients';
 
 interface ClientSearchProps {
   onSelect: (client: { id: string; name: string } | null) => void;
@@ -15,6 +10,7 @@ interface ClientSearchProps {
 const ClientSearch: React.FC<ClientSearchProps> = ({ onSelect, selectedClient }) => {
   const [query, setQuery] = useState('');
   const [recent, setRecent] = useState<{ id: string; name: string }[]>([]);
+  const { clients, loading, error } = useClients();
   const filtered = clients.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
 
   // Select client and update recent
@@ -53,10 +49,12 @@ const ClientSearch: React.FC<ClientSearchProps> = ({ onSelect, selectedClient })
         className="w-full px-4 py-2 rounded-md bg-dark border border-primary/30 text-light focus:ring-2 focus:ring-primary outline-none transition mb-2"
       />
       <div className="bg-dark border border-primary/10 rounded-md shadow max-h-40 overflow-y-auto">
-        {filtered.length === 0 && (
+        {loading && <div className="px-4 py-2 text-light/50">Loading clients...</div>}
+        {error && <div className="px-4 py-2 text-red-400">{error}</div>}
+        {!loading && !error && filtered.length === 0 && (
           <div className="px-4 py-2 text-light/50">No clients found.</div>
         )}
-        {filtered.map(client => (
+        {!loading && !error && filtered.map(client => (
           <button
             key={client.id}
             onClick={() => handleSelect(client)}

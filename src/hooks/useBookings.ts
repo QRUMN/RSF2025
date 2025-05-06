@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabase";
+import { sendBookingEmail, sendBookingSMS } from "../utils/notifications";
 
 export interface Booking {
   id: string;
@@ -46,8 +47,34 @@ export function useBookings() {
       .single();
     if (error) setError(error.message);
     if (data) setBookings((prev) => [data, ...prev]);
+
+    // --- Notification logic ---
+    if (data && booking.client) {
+      // Fetch client contact info
+      const { data: clientProfile } = await supabase
+        .from('profiles')
+        .select('email, phone, first_name, last_name')
+        .eq('id', booking.client)
+        .single();
+      if (clientProfile) {
+        // Prepare notification content
+        const clientName = [clientProfile.first_name, clientProfile.last_name].filter(Boolean).join(' ');
+        const service = booking.service_type;
+        const date = booking.date;
+        const startTime = booking.start_time;
+        const emailSubject = `Your ${service} Appointment Confirmation`;
+        const emailHtml = `<p>Hi ${clientName},</p><p>Your ${service} appointment is confirmed for ${date} at ${startTime}.</p>`;
+        const smsBody = `Hi ${clientName}, your ${service} appointment is confirmed for ${date} at ${startTime}.`;
+        // TODO: Integrate real providers below
+        if (clientProfile.email) await sendBookingEmail({ to: clientProfile.email, subject: emailSubject, html: emailHtml });
+        if (clientProfile.phone) await sendBookingSMS({ to: clientProfile.phone, body: smsBody });
+      }
+    }
+    // --- End notification logic ---
+
     setLoading(false);
     return { data, error };
+
   };
 
   const updateBooking = async (id: string, updates: Partial<Booking>) => {

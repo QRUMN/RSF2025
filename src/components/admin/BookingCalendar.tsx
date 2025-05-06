@@ -7,7 +7,8 @@ interface BookingCalendarProps {
 }
 
 const BookingCalendar: React.FC<BookingCalendarProps> = ({ onNewBooking }) => {
-  const [date, setDate] = useState<Date | Date[]>(new Date());
+  // Only allow single date selection
+  const [date, setDate] = useState<Date | null>(new Date());
 
   return (
     <div className="rounded-lg border border-primary/20 bg-dark/90 shadow p-2 sm:p-4 min-h-[350px]">
@@ -23,15 +24,14 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({ onNewBooking }) => {
       <div className="overflow-x-auto">
         <div className="min-w-[320px]">
           <Calendar
-            onChange={setDate}
+            onChange={(d) => setDate(d as Date)}
             value={date}
             className="bg-dark rounded-lg text-light"
-            calendarType="US"
           />
         </div>
       </div>
       <div className="mt-4 text-light/80 text-sm">
-        Selected date: {Array.isArray(date) ? date[0].toLocaleDateString() : date.toLocaleDateString()}
+        Selected date: {date ? date.toLocaleDateString() : 'None selected'}
       </div>
     </div>
   );

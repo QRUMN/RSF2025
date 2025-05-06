@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useBookings } from "../../hooks/useBookings";
+import ClientSearch from "./ClientSearch";
 
 interface BookingFormProps {
   open: boolean;
@@ -38,15 +39,17 @@ const BookingForm: React.FC<BookingFormProps> = ({ open, onClose, initialData })
     e.preventDefault();
     setFormError(null);
     // Basic validation
-    if (!fields.client || !fields.staff || !fields.date || !fields.start_time || !fields.end_time) {
+    const clientId = typeof fields.client === 'object' && fields.client !== null ? fields.client.id : fields.client;
+    if (!clientId || !fields.staff || !fields.date || !fields.start_time || !fields.end_time) {
       setFormError("Please fill in all required fields.");
       return;
     }
     try {
+      const bookingData = { ...fields, client: clientId };
       if (isEdit) {
-        await updateBooking(fields.id, fields);
+        await updateBooking(fields.id, bookingData);
       } else {
-        await createBooking(fields);
+        await createBooking(bookingData);
       }
       onClose();
     } catch (err: any) {
@@ -76,15 +79,14 @@ const BookingForm: React.FC<BookingFormProps> = ({ open, onClose, initialData })
             </select>
           </div>
           <div>
-            <label className="block text-light mb-1">Client Name</label>
-            <input
-              type="text"
-              name="client"
-              value={fields.client}
-              onChange={handleChange}
-              className="w-full rounded bg-dark border border-primary/20 text-light p-2"
-              required
+            <label className="block text-light mb-1">Client</label>
+            <ClientSearch
+              onSelect={(client: { id: string; name: string } | null) => setFields((prev: typeof fields) => ({ ...prev, client }))}
+              selectedClient={typeof fields.client === 'object' && fields.client !== null ? fields.client : undefined}
             />
+            {fields.client && (
+              <div className="text-xs text-primary mt-1">Selected: {fields.client.name}</div>
+            )}
           </div>
           <div>
             <label className="block text-light mb-1">Staff Name</label>

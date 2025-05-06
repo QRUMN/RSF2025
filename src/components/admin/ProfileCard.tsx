@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardBody } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { ImageUploader } from '../../components/ui/ImageUploader';
+import { supabase } from '../../lib/supabase';
 
 interface ProfileCardProps {
   profile: any;
@@ -30,8 +31,21 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onSave, loadi
 
   const handlePhotoUpload = async (url: string) => {
     setPhotoUploading(true);
-    setEditProfile((prev: any) => ({ ...prev, profile_photo_url: url }));
-    setPhotoUploading(false);
+    try {
+      // Save new photo URL to Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({ profile_photo_url: url })
+        .eq('id', profile.id);
+      if (error) throw error;
+      setEditProfile((prev: any) => ({ ...prev, profile_photo_url: url }));
+    } catch (err) {
+      // Optionally show error to user
+      alert('Failed to save profile photo.');
+      console.error('Error saving profile photo:', err);
+    } finally {
+      setPhotoUploading(false);
+    }
   };
 
   const handleSave = async () => {

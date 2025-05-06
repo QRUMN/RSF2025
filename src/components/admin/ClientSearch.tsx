@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import { useClients } from '../../hooks/useClients';
+import UserNameWithPhoto from '../ui/UserNameWithPhoto';
 
 interface ClientSearchProps {
   onSelect: (client: { id: string; name: string } | null) => void;
@@ -34,9 +35,9 @@ const ClientSearch: React.FC<ClientSearchProps> = ({ onSelect, selectedClient })
             <button
               key={c.id}
               onClick={() => handleSelect(c)}
-              className="px-3 py-1 rounded bg-primary/20 text-primary text-xs font-semibold hover:bg-primary/40 transition"
+              className="px-3 py-1 rounded bg-primary/20 text-primary text-xs font-semibold hover:bg-primary/40 transition flex items-center gap-2"
             >
-              {c.name}
+              <UserNameWithPhoto name={c.name} photoUrl={clients.find(cl => cl.id === c.id)?.profile_photo_url} size={20} />
             </button>
           ))}
         </div>
@@ -48,29 +49,34 @@ const ClientSearch: React.FC<ClientSearchProps> = ({ onSelect, selectedClient })
         placeholder="Type client name..."
         className="w-full px-4 py-2 rounded-md bg-dark border border-primary/30 text-light focus:ring-2 focus:ring-primary outline-none transition mb-2"
       />
-      <div className="bg-dark border border-primary/10 rounded-md shadow max-h-40 overflow-y-auto">
-        {loading && <div className="px-4 py-2 text-light/50">Loading clients...</div>}
-        {error && <div className="px-4 py-2 text-red-400">{error}</div>}
-        {!loading && !error && filtered.length === 0 && (
-          <div className="px-4 py-2 text-light/50">No clients found.</div>
-        )}
-        {!loading && !error && filtered.map(client => (
-          <button
-            key={client.id}
-            onClick={() => handleSelect(client)}
-            className={`w-full text-left px-4 py-2 hover:bg-primary/10 transition ${selectedClient?.id === client.id ? 'bg-primary/20 text-primary font-semibold' : 'text-light'}`}
-          >
-            {client.name}
-          </button>
-        ))}
-      </div>
+      {query.trim().length > 0 && (
+        <div className="bg-dark border border-primary/10 rounded-md shadow max-h-40 overflow-y-auto">
+          {loading && <div className="px-4 py-2 text-light/50">Loading clients...</div>}
+          {error && <div className="px-4 py-2 text-red-400">{error}</div>}
+          {!loading && !error && filtered.length === 0 && (
+            <div className="px-4 py-2 text-light/50">No clients found.</div>
+          )}
+          {!loading && !error && filtered.map(client => (
+            <button
+              key={client.id}
+              onClick={() => handleSelect(client)}
+              className={`w-full text-left px-4 py-2 hover:bg-primary/10 transition flex items-center gap-2 ${selectedClient?.id === client.id ? 'bg-primary/20 text-primary font-semibold' : 'text-light'}`}
+            >
+              <UserNameWithPhoto name={client.name} photoUrl={client.profile_photo_url} size={20} />
+            </button>
+          ))}
+        </div>
+      )}
       {selectedClient && (
-        <button
-          className="mt-2 px-4 py-2 rounded bg-primary/20 text-primary font-semibold hover:bg-primary/40 transition"
-          onClick={() => onSelect(null)}
-        >
-          Clear Selection
-        </button>
+        <div className="flex items-center gap-2 mb-2">
+          <UserNameWithPhoto name={selectedClient.name} photoUrl={clients.find(cl => cl.id === selectedClient.id)?.profile_photo_url} size={24} />
+          <button
+            className="px-3 py-1 rounded bg-primary/20 text-primary font-semibold hover:bg-primary/40 transition"
+            onClick={() => onSelect(null)}
+          >
+            Clear Selection
+          </button>
+        </div>
       )}
 
     </div>

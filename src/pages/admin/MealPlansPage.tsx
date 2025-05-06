@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import MealPlanBuilder from '../../components/admin/MealPlanBuilder';
 import ClientSearch from '../../components/admin/ClientSearch';
+import ClientStatusWidget from '../../components/admin/ClientStatusWidget';
 import { Utensils, AlertCircle } from 'lucide-react';
 
 // Placeholder meal plans data
@@ -343,6 +344,7 @@ const MealPlansPage: React.FC = () => {
         }}
         selectedClient={selectedClient}
       />
+      <ClientStatusWidget />
       {!selectedClient ? (
         <div className="flex flex-col items-center justify-center text-light/50 py-16">
           <Utensils className="w-12 h-12 mb-2 opacity-20" />

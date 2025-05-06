@@ -14,6 +14,7 @@ import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminFinancialPage from './pages/admin/AdminFinancialPage';
 import MealPlansPage from './pages/admin/MealPlansPage';
+import SchedulingPage from './pages/admin/SchedulingPage';
 import AdminLayout from './components/layout/AdminLayout';
 import Layout from './components/layout/Layout';
 import { AdminRoute } from './components/auth/AdminRoute';
@@ -38,6 +39,7 @@ function App() {
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="financial" element={<AdminFinancialPage />} />
           <Route path="meal-plans" element={<MealPlansPage />} />
+          <Route path="scheduling" element={<SchedulingPage />} />
         </Route>
       </Route>
 

@@ -223,9 +223,17 @@ const MealPlansPage: React.FC = () => {
   // Gather all upcoming reminders
   const today = new Date().toISOString().slice(0, 10);
   const upcomingReminders = Object.entries(planReminders)
-    .flatMap(([planId, reminders]) =>
-      reminders.map(rem => ({ ...rem, planId, planName: mealPlans.find(p => p.id === planId)?.name || '' }))
-    <div className="max-w-4xl mx-auto p-6 md:p-10">
+    .flatMap(([planId, reminders]) => {
+      const remindersWithPlanName = reminders.map(rem => ({ ...rem, planId, planName: mealPlans.find(p => p.id === planId)?.name || '' }));
+      return remindersWithPlanName;
+    })
+    .filter(rem => rem.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const remindersDueToday = upcomingReminders.filter(rem => rem.date === today);
+
+  return (
+    <>
+      <div className="max-w-4xl mx-auto p-6 md:p-10">
       {/* Notification banner for reminders due today */}
       {remindersDueToday.length > 0 && (
         <div className="mb-4 p-4 bg-cyan-700/20 border-l-4 border-cyan-400 text-cyan-200 rounded">
@@ -534,13 +542,3 @@ const MealPlansPage: React.FC = () => {
             className="px-6 py-2 rounded bg-primary/20 text-primary font-semibold hover:bg-primary/40 transition"
             onClick={closeRemindDialog}
           >
-            Close
-          </button>
-        </div>
-      </div>
-    )}
-  </div>
-);
-};
-
-export default MealPlansPage;

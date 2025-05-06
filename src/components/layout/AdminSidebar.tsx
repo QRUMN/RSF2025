@@ -7,7 +7,8 @@ import {
   LogOut,
   X,
   DollarSign,
-  Utensils
+  Utensils,
+  Calendar
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
@@ -66,6 +67,21 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ onClose }) => {
         >
           <LayoutDashboard className="w-5 h-5 mr-3" />
           Dashboard
+        </NavLink>
+
+        <NavLink
+          to="/admin/scheduling"
+          onClick={onClose}
+          className={({ isActive }) =>
+            `flex items-center px-4 py-2 rounded-lg transition-colors ${
+              isActive
+                ? 'bg-primary text-dark'
+                : 'text-light/70 hover:bg-primary/10 hover:text-light'
+            }`
+          }
+        >
+          <Calendar className="w-5 h-5 mr-3" />
+          Scheduling
         </NavLink>
 
         <NavLink

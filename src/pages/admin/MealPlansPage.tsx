@@ -264,10 +264,76 @@ const MealPlansPage: React.FC = () => {
           </div>
         </div>
       )}
+      {/* --- WIDGETS ROW --- */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {/* Meal Plan Stats Widget */}
+        <div className="bg-dark/80 border border-primary/20 rounded-xl p-5 flex flex-col items-center shadow">
+          <div className="text-primary font-bold text-lg mb-2">Meal Plan Stats</div>
+          <div className="flex gap-4 w-full justify-around">
+            <div className="flex flex-col items-center">
+              <span className="text-green-400 text-2xl font-bold">{mealPlans.filter(p => p.status === 'Active').length}</span>
+              <span className="text-xs text-light/60">Active</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-yellow-300 text-2xl font-bold">{mealPlans.filter(p => p.status === 'Draft').length}</span>
+              <span className="text-xs text-light/60">Draft</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-gray-300 text-2xl font-bold">{mealPlans.filter(p => p.status === 'Archived').length}</span>
+              <span className="text-xs text-light/60">Archived</span>
+            </div>
+          </div>
+        </div>
+        {/* Recent Meal Plans Widget */}
+        <div className="bg-dark/80 border border-primary/20 rounded-xl p-5 flex flex-col shadow">
+          <div className="text-primary font-bold text-lg mb-2">Recent Meal Plans</div>
+          <ul className="text-light/90 text-sm space-y-1">
+            {mealPlans.slice(0, 5).map(plan => (
+              <li key={plan.id} className="flex justify-between items-center">
+                <span>{plan.name}</span>
+                <span className="text-xs text-light/50">{plan.date}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        {/* Quick Actions Widget */}
+        <div className="bg-dark/80 border border-primary/20 rounded-xl p-5 flex flex-col items-center shadow">
+          <div className="text-primary font-bold text-lg mb-2">Quick Actions</div>
+          <button
+            className="w-full bg-primary text-dark font-semibold rounded-lg py-2 mb-2 hover:bg-primary/90 transition"
+            onClick={() => setShowBuilder(true)}
+          >
+            + Create New Meal Plan
+          </button>
+          <button
+            className="w-full border border-primary text-primary font-semibold rounded-lg py-2 hover:bg-primary/10 transition"
+            onClick={() => setDropdownOpen('templates')}
+          >
+            View Templates
+          </button>
+        </div>
+      </div>
+      {/* --- Compact Upcoming Reminders Widget --- */}
+      {upcomingReminders.length > 0 && (
+        <div className="mb-8">
+          <div className="text-cyan-300 font-semibold mb-2">Upcoming Reminders</div>
+          <div className="rounded bg-dark border border-cyan-800 p-4 overflow-x-auto">
+            <ul className="flex flex-wrap gap-4">
+              {upcomingReminders.slice(0, 6).map((rem, idx) => (
+                <li key={idx} className="flex flex-col items-start gap-1 min-w-[120px]">
+                  <span className="text-cyan-400 text-xs">{rem.date}</span>
+                  <span className="font-semibold text-cyan-200 text-xs">{rem.planName}</span>
+                  <span className="text-light/80 text-xs">{rem.message}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+      {/* --- END WIDGETS ROW --- */}
       <ClientSearch
         onSelect={client => {
           if (!client) return setSelectedClient(null);
-          // Mock client profile data
           setSelectedClient({
             ...client,
             age: 28,
@@ -277,22 +343,6 @@ const MealPlansPage: React.FC = () => {
         }}
         selectedClient={selectedClient}
       />
-      {selectedClient && (
-        <div className="mb-6 p-4 rounded-lg bg-primary/10 border border-primary/20 flex flex-col md:flex-row md:items-center gap-4">
-          <div>
-            <div className="text-lg font-bold text-primary">{selectedClient.name}</div>
-            <div className="text-light/80 text-sm">Age: {selectedClient.age ?? 'N/A'}</div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {selectedClient.goals?.map(goal => (
-              <span key={goal} className="bg-primary/30 text-primary px-2 py-1 rounded text-xs">{goal}</span>
-            ))}
-            {selectedClient.dietaryPrefs?.map(pref => (
-              <span key={pref} className="bg-green-700/30 text-green-300 px-2 py-1 rounded text-xs">{pref}</span>
-            ))}
-          </div>
-        </div>
-      )}
       {!selectedClient ? (
         <div className="flex flex-col items-center justify-center text-light/50 py-16">
           <Utensils className="w-12 h-12 mb-2 opacity-20" />

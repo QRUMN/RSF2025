@@ -547,3 +547,9 @@ const MealPlansPage: React.FC = () => {
         </div>
       </div>
     )}
+
+</>
+ );
+ };
+
+ export default MealPlansPage;

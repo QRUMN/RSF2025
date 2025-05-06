@@ -542,3 +542,8 @@ const MealPlansPage: React.FC = () => {
             className="px-6 py-2 rounded bg-primary/20 text-primary font-semibold hover:bg-primary/40 transition"
             onClick={closeRemindDialog}
           >
+            Close
+          </button>
+        </div>
+      </div>
+    )}

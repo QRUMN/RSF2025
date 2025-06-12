@@ -5,11 +5,12 @@ import { MessageList } from '../../components/messaging/MessageList';
 import { ConversationView } from '../../components/messaging/ConversationView';
 import { Button } from '../../components/ui/Button';
 import { Search, Plus, Users, UserX, X, CheckCircle2, Loader2 } from 'lucide-react';
+import { messagingService, Conversation } from '../../services/messagingService';
 
 export default function AdminMessagingPage() {
   const { user } = useAuth();
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isNewConversationModalOpen, setIsNewConversationModalOpen] = useState(false);
@@ -29,23 +30,10 @@ export default function AdminMessagingPage() {
   const fetchAvailableClients = async () => {
     setClientsLoading(true);
     try {
-      // Fetch all client profiles
-      const { data, error } = await supabase
-        .from('clients')
-        .select(`
-          id,
-          users:user_id (id, full_name, avatar_url)
-        `);
-        
-      if (error) throw error;
+      if (!user?.id) return;
       
-      // Filter out clients that already have conversations with this coach
-      const existingClientIds = conversations.map(convo => convo.client?.id);
-      const filteredClients = data?.filter(client => 
-        !existingClientIds.includes(client.id)
-      ) || [];
-      
-      setAvailableClients(filteredClients);
+      const clients = await messagingService.getAvailableClientsForCoach(user.id);
+      setAvailableClients(clients);
     } catch (error) {
       console.error('Error fetching clients:', error);
     } finally {
@@ -56,55 +44,18 @@ export default function AdminMessagingPage() {
   const fetchConversations = async () => {
     setLoading(true);
     try {
-      // For admin/coaches, we get conversations where they are the coach
-      const { data, error } = await supabase
-        .from('conversations')
-        .select(`
-          id,
-          created_at,
-          client:client_id (id, users:user_id (full_name, avatar_url))
-        `)
-        .eq('coach_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      if (!user?.id) return;
       
-      // Fetch the latest message for each conversation
-      const conversationsWithLatestMessage = await Promise.all((data || []).map(async (convo) => {
-        const { data: latestMessage } = await supabase
-          .from('messages')
-          .select('text, created_at, sender_type, read_at')
-          .eq('conversation_id', convo.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-        
-        // Count unread messages
-        const { count: unreadCount } = await supabase
-          .from('messages')
-          .select('id', { count: 'exact', head: false })
-          .eq('conversation_id', convo.id)
-          .eq('sender_type', 'client')
-          .is('read_at', null);
-
-        return {
-          ...convo,
-          coach: { 
-            id: user?.id,
-            full_name: user?.user_metadata?.full_name || 'Coach'
-          },
-          latestMessage: latestMessage || null,
-          unreadCount: unreadCount || 0
-        };
-      }));
-
-      setConversations(conversationsWithLatestMessage);
+      const conversationsData = await messagingService.fetchConversations(user.id, false);
+      setConversations(conversationsData);
 
       // Auto-select the first conversation if none is selected
-      if (!activeConversation && conversationsWithLatestMessage.length > 0) {
-        setActiveConversation(conversationsWithLatestMessage[0].id);
+      if (!activeConversation && conversationsData.length > 0) {
+        setActiveConversation(conversationsData[0].id);
       }
-
+      
+      // Update coach's last seen timestamp
+      await messagingService.updateLastSeen(user.id);
     } catch (error) {
       console.error('Error fetching conversations:', error);
     } finally {
@@ -349,43 +300,24 @@ export default function AdminMessagingPage() {
   );
   
   async function createNewConversation() {
-    if (!selectedClientId || !user) return;
+    if (!selectedClientId || !user?.id) return;
     
     setCreatingConversation(true);
     try {
-      // Create a new conversation
-      const { data: conversationData, error: conversationError } = await supabase
-        .from('conversations')
-        .insert({
-          client_id: selectedClientId,
-          coach_id: user.id,
-          created_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+      const conversationId = await messagingService.createConversation(
+        selectedClientId,
+        user.id,
+        'Hello! How can I help you today?'
+      );
       
-      if (conversationError) throw conversationError;
-      
-      // Create a welcome message
-      const { error: messageError } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: conversationData.id,
-          sender_id: user.id,
-          sender_type: 'coach',
-          text: 'Hello! How can I help you today?',
-          created_at: new Date().toISOString()
-        });
-      
-      if (messageError) throw messageError;
-      
-      // Close the modal and refresh conversations
-      setIsNewConversationModalOpen(false);
-      await fetchConversations();
-      
-      // Set the newly created conversation as active
-      setActiveConversation(conversationData.id);
-      
+      if (conversationId) {
+        // Close the modal and refresh conversations
+        setIsNewConversationModalOpen(false);
+        await fetchConversations();
+        
+        // Set the newly created conversation as active
+        setActiveConversation(conversationId);
+      }
     } catch (error) {
       console.error('Error creating conversation:', error);
     } finally {

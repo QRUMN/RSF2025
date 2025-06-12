@@ -4,30 +4,9 @@ import { Send, Check, CheckCheck, PaperclipIcon, X } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { messagingService, Message, Participant } from '../../services/messagingService';
 
-interface Message {
-  id: string;
-  text: string;
-  sender_id: string;
-  conversation_id: string;
-  created_at: string;
-  read_at: string | null;
-  sender_type: 'client' | 'coach' | 'admin';
-  attachment_url?: string | null;
-  attachment_name?: string | null;
-}
-
-interface Participant {
-  id: string;
-  full_name: string;
-  title?: string | null;
-  avatar_url?: string | null;
-  last_seen_at?: string | null;
-  users?: {
-    full_name: string;
-    avatar_url: string | null;
-  };
-}
+// Using types from messagingService.ts
 
 interface ConversationViewProps {
   conversationId: string;
@@ -76,14 +55,8 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
-      
-      if (error) throw error;
-      setMessages(data || []);
+      const messagesData = await messagingService.fetchMessages(conversationId);
+      setMessages(messagesData);
     } catch (error) {
       console.error('Error fetching messages:', error);
     } finally {
@@ -93,56 +66,9 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
 
   const fetchParticipantDetails = async () => {
     try {
-      const { data: conversationData, error: conversationError } = await supabase
-        .from('conversations')
-        .select('client_id, coach_id')
-        .eq('id', conversationId)
-        .single();
-      
-      if (conversationError) throw conversationError;
-      
-      // If user is client, fetch coach details, otherwise fetch client details
-      const participantId = isUserClient ? conversationData.coach_id : conversationData.client_id;
-      
-      if (isUserClient) {
-        // Fetch coach details
-        const { data, error } = await supabase
-          .from('coaches')
-          .select('id, full_name, avatar_url, title, last_seen_at')
-          .eq('id', participantId)
-          .single();
-          
-        if (error) throw error;
-        
-        if (data) {
-          setParticipant({
-            id: data.id,
-            full_name: data.full_name,
-            title: data.title,
-            avatar_url: data.avatar_url,
-            last_seen_at: data.last_seen_at
-          });
-        }
-      } else {
-        // Fetch client details
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('id, users:user_id (full_name, avatar_url)')
-          .eq('user_id', participantId)
-          .single();
-          
-        if (error) throw error;
-        
-        if (data) {
-          // Access the joined data correctly
-          setParticipant({
-            id: data.id,
-            full_name: typeof data.users === 'object' && data.users ? 
-              (data.users as any).full_name || 'Client' : 'Client',
-            avatar_url: typeof data.users === 'object' && data.users ? 
-              (data.users as any).avatar_url : null
-          });
-        }
+      const participantData = await messagingService.fetchParticipantDetails(conversationId, isUserClient);
+      if (participantData) {
+        setParticipant(participantData);
       }
     } catch (error) {
       console.error('Error fetching participant details:', error);
@@ -176,15 +102,7 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
 
   const markMessagesAsRead = async () => {
     try {
-      // Mark messages from the other party as read
-      const { error } = await supabase
-        .from('messages')
-        .update({ read_at: new Date().toISOString() })
-        .eq('conversation_id', conversationId)
-        .eq('sender_type', isUserClient ? 'coach' : 'client')
-        .is('read_at', null);
-      
-      if (error) throw error;
+      await messagingService.markMessagesAsRead(conversationId, isUserClient);
       
       // Update local messages state to reflect read status
       setMessages(prev => 
@@ -209,36 +127,7 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
     }
   };
 
-  interface AttachmentData {
-    url: string;
-    filename: string;
-  }
-
-  const uploadAttachment = async (file: File): Promise<AttachmentData | null> => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = `attachments/${conversationId}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('message-attachments')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from('message-attachments')
-        .getPublicUrl(filePath);
-      
-      return {
-        url: urlData.publicUrl,
-        filename: file.name
-      };
-    } catch (error) {
-      console.error('Error uploading attachment:', error);
-      return null;
-    }
-  };
+  // Using AttachmentData from messagingService.ts
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,30 +138,19 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
     setSendingMessage(true);
     
     try {
-      let attachmentData = null;
+      // Send message using the messaging service
+      const success = await messagingService.sendMessage(
+        conversationId,
+        user.id,
+        messageText,
+        isUserClient ? 'client' : 'coach',
+        attachment
+      );
       
-      // Upload attachment if present
-      if (attachment) {
-        attachmentData = await uploadAttachment(attachment);
+      if (success) {
         setAttachment(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
-      
-      // Add message to database
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: conversationId,
-          sender_id: user.id,
-          sender_type: isUserClient ? 'client' : 'coach',
-          text: messageText,
-          created_at: new Date().toISOString(),
-          attachment_url: attachmentData?.url || null,
-          attachment_name: attachmentData?.filename || null
-        });
-      
-      if (error) throw error;
-      
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {

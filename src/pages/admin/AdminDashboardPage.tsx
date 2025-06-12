@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
+
 import { Card, CardBody } from '../../components/ui/Card';
-import { Users, Activity, Calendar, TrendingUp, Loader, AlertCircle, RefreshCw } from 'lucide-react';
+import { Users, Activity, Calendar, TrendingUp, Loader, AlertCircle, RefreshCw, UserCog, BarChart2, Clock, Link2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import UserGrowthChart from '../../components/admin/UserGrowthChart';
 import UserManagement from '../../components/admin/UserManagement';
 import ClientManagement from '../../components/admin/ClientManagement';
 import UpcomingAppointments from '../../components/admin/UpcomingAppointments';
+import { useAuth } from '../../contexts/AuthContext';
+import { ProfileCard } from '../../components/admin/ProfileCard';
 
 interface User {
   id: string;
@@ -41,7 +44,18 @@ interface Client {
   notes?: string;
 }
 
+const quickLinks = [
+  { label: 'User Management', icon: <UserCog className="w-5 h-5 text-primary" />, href: '/admin/users' },
+  { label: 'Site Analytics', icon: <BarChart2 className="w-5 h-5 text-primary" />, href: '/admin/analytics' },
+  { label: 'Recent Activity', icon: <Clock className="w-5 h-5 text-primary" />, href: '/admin/activity' },
+  { label: 'Settings', icon: <Link2 className="w-5 h-5 text-primary" />, href: '/admin/settings' },
+];
+
 const AdminDashboardPage: React.FC = () => {
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     activeUsers: 0,
@@ -226,6 +240,53 @@ const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+  
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      setProfileLoading(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      if (!error && data) setProfile(data);
+      setProfileLoading(false);
+    };
+    fetchProfile();
+  }, [user]);
+
+  const handleSaveProfile = async (updated: any) => {
+    setProfileLoading(true);
+    if (!user) {
+      console.error('Cannot update profile: No user is logged in');
+      setProfileLoading(false);
+      return;
+    }
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        first_name: updated.first_name,
+        last_name: updated.last_name,
+        email: updated.email,
+        positions: updated.positions,
+        notification_preferences: updated.notification_preferences,
+      })
+      .eq('id', user.id);
+    if (!error) {
+      setProfile(updated);
+      // Show toast
+      const toast = document.createElement('div');
+      toast.textContent = 'Profile updated successfully!';
+      toast.className = 'fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-primary text-dark px-6 py-3 rounded-lg shadow-lg z-50 font-semibold text-sm animate-fade-in';
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('animate-fade-out');
+        setTimeout(() => document.body.removeChild(toast), 900);
+      }, 1800);
+    }
+    setProfileLoading(false);
+  };
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
@@ -247,6 +308,11 @@ const AdminDashboardPage: React.FC = () => {
 
   return (
     <div>
+      {profile && (
+        <div className="mb-8">
+          <ProfileCard profile={profile} onSave={handleSaveProfile} loading={profileLoading} />
+        </div>
+      )}
       <div className="flex justify-between items-center mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-display font-bold text-light">
           Dashboard

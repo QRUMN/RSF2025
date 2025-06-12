@@ -1,0 +1,239 @@
+/* Modern Calendar Styles */
+.rbc-calendar {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #1a1a2e;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Header styling */
+.rbc-toolbar {
+  padding: 1rem;
+  background-color: #1a1a2e;
+  border-bottom: none;
+  color: #f0f0f0;
+}
+
+.rbc-toolbar button {
+  color: #f0f0f0;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.rbc-toolbar button:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.rbc-toolbar button.rbc-active {
+  background-color: var(--color-primary);
+  color: #000;
+}
+
+.rbc-toolbar-label {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Month view */
+.rbc-month-view {
+  border: none;
+  background-color: #1a1a2e;
+}
+
+.rbc-month-header {
+  background-color: #1a1a2e;
+}
+
+.rbc-header {
+  padding: 0.75rem 0;
+  font-weight: 500;
+  color: #a0a0a0;
+  border-bottom: none;
+}
+
+.rbc-header + .rbc-header {
+  border-left: none;
+}
+
+/* Day cells */
+.rbc-day-bg {
+  background-color: #222236;
+  transition: background-color 0.2s ease;
+}
+
+.rbc-day-bg + .rbc-day-bg {
+  border-left: 1px solid #2a2a40;
+}
+
+.rbc-month-row {
+  border-top: 1px solid #2a2a40;
+}
+
+.rbc-month-row + .rbc-month-row {
+  border-top: 1px solid #2a2a40;
+}
+
+.rbc-off-range {
+  background-color: #1a1a28;
+}
+
+.rbc-off-range-bg {
+  background-color: #1a1a28;
+}
+
+.rbc-today {
+  background-color: rgba(var(--color-primary-rgb), 0.15);
+}
+
+/* Events */
+.rbc-event {
+  border-radius: 6px;
+  padding: 4px 8px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s ease;
+}
+
+.rbc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.rbc-event-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.rbc-event-content {
+  font-size: 0.85rem;
+}
+
+/* Week view and day view */
+.rbc-time-view {
+  border: none;
+  background-color: #222236;
+}
+
+.rbc-time-header {
+  border-bottom: 1px solid #2a2a40;
+}
+
+.rbc-time-header-content {
+  border-left: 1px solid #2a2a40;
+}
+
+.rbc-time-content {
+  border-top: 1px solid #2a2a40;
+}
+
+.rbc-time-slot {
+  border-top: 1px solid #2a2a40;
+}
+
+.rbc-timeslot-group {
+  border-bottom: 1px solid #2a2a40;
+}
+
+.rbc-time-gutter, 
+.rbc-label {
+  color: #a0a0a0;
+}
+
+.rbc-day-slot .rbc-time-slot {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rbc-current-time-indicator {
+  background-color: var(--color-primary);
+  height: 2px;
+}
+
+/* Agenda view */
+.rbc-agenda-view table.rbc-agenda-table {
+  border: none;
+  background-color: #222236;
+  color: #f0f0f0;
+}
+
+.rbc-agenda-view table.rbc-agenda-table thead > tr > th {
+  border-bottom: 1px solid #2a2a40;
+  color: #a0a0a0;
+  padding: 0.75rem;
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #2a2a40;
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.rbc-agenda-time-cell {
+  color: #a0a0a0;
+}
+
+/* Date cell */
+.rbc-date-cell {
+  padding: 0.5rem;
+  text-align: center;
+  color: #f0f0f0;
+}
+
+.rbc-date-cell.rbc-now {
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+.rbc-date-cell > a {
+  font-size: 0.85rem;
+  font-weight: 500;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  margin: 0 auto;
+}
+
+.rbc-date-cell > a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* All-day events */
+.rbc-allday-cell {
+  background-color: #222236;
+  border-bottom: 1px solid #2a2a40;
+}
+
+/* Show more link */
+.rbc-show-more {
+  color: var(--color-primary);
+  font-weight: 500;
+  background-color: transparent;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .rbc-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  
+  .rbc-toolbar-label {
+    margin: 0.5rem 0;
+  }
+  
+  .rbc-btn-group {
+    justify-content: center;
+  }
+}
